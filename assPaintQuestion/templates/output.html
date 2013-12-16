@@ -1,0 +1,30 @@
+<p>{QUESTIONTEXT}</p>
+<label style="{DISPLAY_LINE} float:left;" for="selWidth">Line width:&nbsp;</label> 
+<select id="selWidth" style="border-radius: 4px; border: 1px solid rgb(170, 170, 170); padding: 2px; {DISPLAY_LINE}">
+	<option value="1">1</option>
+	<option selected="selected" value="3">3</option>
+	<option value="6">6</option>
+	<option value="8">8</option>
+	<option value="10">10</option>
+	<option value="12">12</option>
+</select>        
+<label style="{DISPLAY_COLOR}" for="selColor">Color:&nbsp;</label>
+<select id="selColor" style="border-radius: 4px; border: 1px solid rgb(170, 170, 170); padding: 2px; {DISPLAY_COLOR}">
+	<option selected="selected" value="black">black</option>
+	<option value="blue">blue</option>            
+	<option value="gray">gray</option>
+	<option value="green">green</option>
+	<option value="red">red</option>
+	<option value="yellow">yellow</option>                
+</select>        
+<input type="button" name="undo" value="undo" onclick="paintTask.undo(); return false;">
+<input type="button" name="redo" value="redo" onclick="paintTask.redo(); return false;">        
+<input type="button" name="erasePaint" value="paint" onclick="paintTask.erasePaint(this); return false;">
+<input type="button" name="clear" value="clear all" onclick="paintTask.clear(); return false;">          
+<br><br>
+<div style="width:800px; height:700px; border:1px solid #000000; overflow:auto;">
+	<!-- resize:both; overflow:auto;  nur im Firefox?-->
+	<canvas id="paintCanvas" width="800" height="700" style="vertical-align: bottom; {BACKGROUND} cursor: crosshair;">Kein Canvas unterstüzt!</canvas>	
+</div>  
+<textarea id="answerImage" name="answerImage" cols="50" rows="10" style="display:none;"></textarea>
+<script>var paintTask = new PaintTask("{RESUME}");</script>
