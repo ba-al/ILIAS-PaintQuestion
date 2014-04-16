@@ -60,11 +60,32 @@ class assPaintQuestionExport extends assQuestionExport
 		$a_xml_writer->xmlElement("fieldlabel", NULL, "points");
 		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getPoints());
 		$a_xml_writer->xmlEndTag("qtimetadatafield");	
-			
-		//*** background image
+		//
 		$a_xml_writer->xmlStartTag("qtimetadatafield");
-		$a_xml_writer->xmlElement("fieldlabel", NULL, "BACKGROUND");
+		$a_xml_writer->xmlElement("fieldlabel", NULL, "allowDifferentLineSize");
+		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getLineValue());
+		$a_xml_writer->xmlEndTag("qtimetadatafield");	
+		//
+		$a_xml_writer->xmlStartTag("qtimetadatafield");
+		$a_xml_writer->xmlElement("fieldlabel", NULL, "allowDifferentColors");
+		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getColorValue());
+		$a_xml_writer->xmlEndTag("qtimetadatafield");	
 		
+		// backgroundImage			
+		$imagetype = "image/jpeg";
+		if (preg_match("/.*\.(png|gif)$/", $this->object->getImageFilename(), $matches))
+		{
+			$imagetype = "image/" . $matches[1];
+		}
+		$a_xml_writer->xmlStartTag("qtimetadatafield");	
+		$a_xml_writer->xmlElement("fieldlabel", NULL, "imagelabel");
+		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getImageFilename());
+		$a_xml_writer->xmlEndTag("qtimetadatafield");
+		$a_xml_writer->xmlStartTag("qtimetadatafield");	
+		$a_xml_writer->xmlElement("fieldlabel", NULL, "imagetype");
+		$a_xml_writer->xmlElement("fieldentry", NULL, $imagetype);
+		$a_xml_writer->xmlEndTag("qtimetadatafield");
+				
 		$imagepath = $this->object->getImagePath() . $this->object->getImageFilename();
 		$fh = fopen($imagepath, "rb");
 		if ($fh == false)
@@ -76,11 +97,11 @@ class assPaintQuestionExport extends assQuestionExport
 		$imagefile = fread($fh, filesize($imagepath));
 		fclose($fh);
 		$base64 = base64_encode($imagefile);
-		
+		$a_xml_writer->xmlStartTag("qtimetadatafield");	
+		$a_xml_writer->xmlElement("fieldlabel", NULL, "backgroundimage");
 		$a_xml_writer->xmlElement("fieldentry", NULL, $base64);
-		$a_xml_writer->xmlEndTag("qtimetadatafield");			
-		
-		//*** evtl. lösungsantwort?	
+		$a_xml_writer->xmlEndTag("qtimetadatafield");				
+		// ende backgroundImage
 		
 		$a_xml_writer->xmlEndTag("qtimetadata");
 		$a_xml_writer->xmlEndTag("itemmetadata");
@@ -94,9 +115,39 @@ class assPaintQuestionExport extends assQuestionExport
 		$a_xml_writer->xmlStartTag("flow");
 		// add material with question text to presentation
 		$this->object->addQTIMaterial($a_xml_writer, $this->object->getQuestion());
-		// add answers to presentation
+
 		$a_xml_writer->xmlEndTag("flow");
-		$a_xml_writer->xmlEndTag("presentation");
+		$a_xml_writer->xmlEndTag("presentation");				
+		
+		// PART III: qti itemfeedback
+		$feedback_allcorrect = $this->object->getFeedbackGeneric(1);
+		$feedback_onenotcorrect = $this->object->getFeedbackGeneric(0);
+		if (strlen($feedback_allcorrect))
+		{
+			$attrs = array(
+				"ident" => "response_allcorrect",
+				"view" => "All"
+			);
+			$a_xml_writer->xmlStartTag("itemfeedback", $attrs);
+			// qti flow_mat
+			$a_xml_writer->xmlStartTag("flow_mat");
+			$this->object->addQTIMaterial($a_xml_writer, $feedback_allcorrect);
+			$a_xml_writer->xmlEndTag("flow_mat");
+			$a_xml_writer->xmlEndTag("itemfeedback");
+		}
+		if (strlen($feedback_onenotcorrect))
+		{
+			$attrs = array(
+				"ident" => "response_onenotcorrect",
+				"view" => "All"
+			);
+			$a_xml_writer->xmlStartTag("itemfeedback", $attrs);
+			// qti flow_mat
+			$a_xml_writer->xmlStartTag("flow_mat");
+			$this->object->addQTIMaterial($a_xml_writer, $feedback_onenotcorrect);
+			$a_xml_writer->xmlEndTag("flow_mat");
+			$a_xml_writer->xmlEndTag("itemfeedback");
+		}
 		
 		$a_xml_writer->xmlEndTag("item");
 		$a_xml_writer->xmlEndTag("questestinterop");

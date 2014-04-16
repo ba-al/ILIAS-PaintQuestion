@@ -1,41 +1,28 @@
-function PaintTask(resumeImage){
-    // Variablen
+function PaintTask(resumeImage){    
+    //**********
+    //********** Variablen
+    //**********
     var canvas = document.getElementById("paintCanvas");
     var textarea = document.getElementById("answerImage");
-    var ctx = canvas.getContext("2d");
-    var backgroundImage = textarea.value;
-    // flag -> wird maustaste gedrückt?
+    var ctx = canvas.getContext("2d");    
+    // flag -> wird maustaste gedrueckt?
     var flag = false;
     // vorhergehende mausposition
     var prevX = 0, prevY = 0;
-    // stack funktioniert, könnte vllt. aber etwas performanter sein
+    // stack funktioniert, koennte vllt. aber etwas performanter sein
     var undoRedoStack = new Array(); 
     var stackPos = -1;
-    // soll durch mausemove inhalt gelöscht (true) oder gezeichnet (false) werden?
+    // soll durch mausemove inhalt geloescht (true) oder gezeichnet (false) werden?
     var erase = false;
-    
-    function initBackground(){
-		// viel zuviele daten, wird extrem langsam...
-		/*if (backgroundImage.length < 1)
-			return;
-		var imageObj = new Image();
-		imageObj.onload = function() {
-			ctx.globalCompositeOperation="destination-over";
-			ctx.drawImage(imageObj, 0,0);
-			ctx.globalCompositeOperation="source-over";
-		};
-		imageObj.src = backgroundImage;
-		*/
-	}
+    var divEraseIcon = document.getElementById("eraseIcon");
 	
     //**********
     //********** Funktionen 
     //**********
     
     function save(){			
-		var base = canvas.toDataURL(); 
-		//textarea.value = base.replace('data:image/png;base64,', "");	
-		textarea.value = base;
+		var base = canvas.toDataURL(); 		
+		textarea.value = base; // als base64-string
 	}	
 	
     this.undo = function() {
@@ -68,9 +55,8 @@ function PaintTask(resumeImage){
     }
 
     this.clear = function() {
-        // lösche den gesamten inhalt, hintergrundbild wird wieder vollständig angezeigt
-        ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
-        initBackground();
+        // loesche den gesamten inhalt, hintergrundbild wird wieder vollstaendig angezeigt
+        ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);        
         pushDrawAction();
     }
 
@@ -78,11 +64,17 @@ function PaintTask(resumeImage){
         // der radiergummie ;)
         // button ist das object, welches diese funktion aufruft    
         if (button.value == "paint"){
-            button.value = "erase";
-            erase = true;
-        } else{
-            button.value = "paint";
+            //button.value = "erase";
+            button.disabled = true;
+            document.getElementById('erase').disabled = false;
+            divEraseIcon.style.display = 'none';
             erase = false;
+        } else{
+            //button.value = "paint";            
+            document.getElementById('erase').disabled = true;
+            document.getElementById('paint').disabled = false;
+            divEraseIcon.style.display = 'inline-block';
+            erase = true;
         }
     }  
     
@@ -98,7 +90,7 @@ function PaintTask(resumeImage){
       }
 
     function draw(mousePos) {
-        // zeichnen?
+        // if zeichnen?
         if (!erase){
             ctx.beginPath();
             ctx.strokeStyle = document.getElementById("selColor").value;
@@ -109,17 +101,27 @@ function PaintTask(resumeImage){
             ctx.closePath();
             ctx.stroke();
         } else{
-            // löschen?
+            // if loeschen?
             var breite = document.getElementById("selWidth").value * 1 + 3;            
-            ctx.clearRect(prevX-Math.round(breite/2), prevY-Math.round(breite/2), breite, breite);
-            initBackground();
+            ctx.clearRect(prevX-Math.round(breite/2), prevY-Math.round(breite/2), breite, breite);            
         }
         prevX = mousePos.x;
         prevY = mousePos.y;
+        // kein save() ?
+        // nein, da pushDrawAction() aufgerufen wird, 
+        // dort wird save() aufgerufen
     }
 
     function mouseMove(e){
-        // wenn mousedown, dann zeichnen (oder löschen)
+        // wenn mousedown, dann zeichnen (oder loeschen)
+        if (erase){
+			var breite = document.getElementById("selWidth").value * 1 + 3		
+			// zeige einen bereich um den mauszeiger an	
+			divEraseIcon.style.width = breite+"px";
+			divEraseIcon.style.height = breite+"px";				
+			divEraseIcon.style.left = e.pageX-breite / 2 +"px";
+			divEraseIcon.style.top = e.pageY-breite / 2 +"px";			
+		}
         if (flag){                
             draw(getMousePos(e));
         }            
@@ -143,7 +145,7 @@ function PaintTask(resumeImage){
         // stoppe alle zeichnenaktionen
         if (flag){
             // wurde vor verlassen gezeichnet, dann erzeuge bild
-            pushDrawAction();
+            pushDrawAction();            
         }
         flag = false;        
     }
@@ -153,9 +155,9 @@ function PaintTask(resumeImage){
     //**********
     
     canvas.oncontextmenu = function() {
-        // unterdrücke Kontextmenu vom canvas
+        // unterdruecke Kontextmenu vom canvas
         return false;  
-    } 
+    }
     canvas.addEventListener("mousemove", function (e) {
         mouseMove(e);        
     }, false);
@@ -171,8 +173,7 @@ function PaintTask(resumeImage){
 
     //**********
     //********** weitere initialisierung
-    //**********
-    //pushDrawAction();        
+    //**********        
     
 	function resume(){
 		if (resumeImage){
@@ -182,21 +183,19 @@ function PaintTask(resumeImage){
 				// zeichne abgabe
 				ctx.drawImage(img,0,0); 
 			//};
-			img.src = resumeImage;
-			//alert(resumeImage);
+			//img.src = resumeImage;			
 			pushDrawAction(); 
-			save();
+			save(); // aufruf notwendig, da sonst 'nichts' als abgabe gespeichert wird
 		}
 	}
 	
 	window.onload = function()
 	{
-		// ist beides nötig, da sonst nicht immer 
-		// die gemachten zeichnungen dagestellt werden...
+		// ist beides noetig, da sonst nicht immer 
+		// die gemachten zeichnungen dargestellt werden...
 		resume();
 		setTimeout(resume,500);
 	}
-    
-    initBackground();
+        
     pushDrawAction(); 
 }

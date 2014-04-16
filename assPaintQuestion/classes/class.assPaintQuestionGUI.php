@@ -35,11 +35,6 @@ class assPaintQuestionGUI extends assQuestionGUI
 		}		
 	}
 
-	function getCommand($cmd)
-	{
-		return $cmd;
-	}
-	
 	/**
 	* Creates an output of the edit form for the question	
 	* @access public
@@ -65,7 +60,7 @@ class assPaintQuestionGUI extends assQuestionGUI
 		$points = new ilNumberInputGUI($plugin->txt("points"), "points");
 		$points->setValue($this->object->getPoints());
 		$points->setRequired(TRUE);
-		$points->setSize(3);
+		$points->setSize(10);
 		$points->setMinValue(0.0);
 		$form->addItem($points);
 		
@@ -77,7 +72,7 @@ class assPaintQuestionGUI extends assQuestionGUI
 		}
 		$form->addItem($image);
 		
-		// erlaube stiftgröße?
+		// erlaube stiftgroeße?
 		$line = new ilCheckboxInputGUI($plugin->txt("line"), 'lineValue');
 		if ($this->object->getLineValue())
 			$line->setChecked(true);
@@ -118,10 +113,8 @@ class assPaintQuestionGUI extends assQuestionGUI
 	* check input fields
 	*/
 	function checkInput()
-	{
-		$cmd = $this->ctrl->getCmd();
-
-		if ((!$_POST["title"]) or (!$_POST["author"]) or (!$_POST["question"]) or (strlen($_POST["points"]) == 0) or ($_POST["points"] == 0) )
+	{		
+		if ((!$_POST["title"]) or (!$_POST["author"]) or (!$_POST["question"]) or (strlen($_POST["points"]) == 0) or ($_POST["points"] < 0) )
 		{			
 			return FALSE;
 		}	
@@ -170,13 +163,7 @@ class assPaintQuestionGUI extends assQuestionGUI
 		{
 			return 1;
 		}
-	}	
-	
-	public function parseQuestion()
-	{
-		$this->writePostData();
-		$this->editQuestion();
-	}
+	}				
 	
 	/**
 	 * Get the output for question preview
@@ -187,8 +174,8 @@ class assPaintQuestionGUI extends assQuestionGUI
 	function getPreview($show_question_only = FALSE)
 	{		
 		global $tpl;			
-		$pl           = $this->object->getPlugin();		
-		$template     = $pl->getTemplate("output.html");						
+		$plugin       = $this->object->getPlugin();		
+		$template     = $plugin->getTemplate("output.html");						
 		$template->setVariable("QUESTIONTEXT", $this->object->prepareTextareaOutput($this->object->getQuestion(), TRUE));
 		if (!$this->object->getLineValue())
 			$template->setVariable("DISPLAY_LINE", "display:none;");			
@@ -196,8 +183,11 @@ class assPaintQuestionGUI extends assQuestionGUI
 			$template->setVariable("DISPLAY_COLOR", "display:none;");	
 		if ($this->object->getImageFilename())
 			$template->setVariable("BACKGROUND", "background:url(".$this->object->getImagePathWeb().$this->object->getImageFilename().");");	
-		$tpl->addJavaScript("./Customizing/global/plugins/Modules/TestQuestionPool/Questions/assPaintQuestion/templates/script.js");
-				
+		
+		$tpl->addJavaScript($plugin->getDirectory().'/templates/script.js');
+		
+		$template->setVariable("RESUME", "");
+		
 		$questionoutput = $template->get();
 		if(!$show_question_only)
 		{
@@ -255,8 +245,8 @@ class assPaintQuestionGUI extends assQuestionGUI
 			}
 		}
 		
-		$pl           = $this->object->getPlugin();		
-		$template     = $pl->getTemplate("output.html");		
+		$plugin       = $this->object->getPlugin();		
+		$template     = $plugin->getTemplate("output.html");		
 		$output 	  = $this->object->getQuestion();
 		
 		if (!$this->object->getLineValue())
@@ -264,11 +254,20 @@ class assPaintQuestionGUI extends assQuestionGUI
 		if (!$this->object->getColorValue())
 			$template->setVariable("DISPLAY_COLOR", "display:none;");	
 		if ($this->object->getImageFilename())
-			$template->setVariable("BACKGROUND", "background:url(".$this->object->getImagePathWeb().$this->object->getImageFilename().");");	
-			//$template->setVariable("BACKGROUND", $this->object->getImagePathWeb().$this->object->getImageFilename());	
-		$tpl->addJavaScript("./Customizing/global/plugins/Modules/TestQuestionPool/Questions/assPaintQuestion/templates/script.js");
+			$template->setVariable("BACKGROUND", "background:url(".$this->object->getImagePathWeb().$this->object->getImageFilename().");");				
+		$tpl->addJavaScript($plugin->getDirectory().'/templates/script.js');
+		//$tpl->addCss("./Services/COPage/css/content.css");	
 								
-		$template->setVariable("RESUME", ilUtil::prepareFormOutput($user_solution[0]["value2"]));		
+		// letzte gespeicherte Eingabe anzeigen
+		$base64 = "";
+		if ($user_solution[0]["value2"])
+		{
+			// wenn eingabe vorhanden, dann bild von gegebener url als base64-string konvertieren
+			$content = file_get_contents ( $user_solution[0]["value2"]);
+			$base64 = 'data:image/png;base64,'.base64_encode( $content );
+		}							
+								
+		$template->setVariable("RESUME", ilUtil::prepareFormOutput($base64));	
 		
 		$template->setVariable("QUESTIONTEXT", $this->object->prepareTextareaOutput($output, TRUE));
 		$questionoutput = $template->get();
@@ -316,49 +315,34 @@ class assPaintQuestionGUI extends assQuestionGUI
 			$user_solution = array();
 		}
 
-		$pl           = $this->object->getPlugin();		
-		$template     = $pl->getTemplate("solution.html");		
-		$output = $this->object->getQuestion();	
+		$plugin       = $this->object->getPlugin();		
+		$template     = $plugin->getTemplate("solution.html");		
+		$output = $this->object->getQuestion();			
+		
 		if ($show_correct_solution)
-			$template->setVariable("ID", $this->object->getId().'CORRECT_SOLUTION');		
+		{			
+			return "<p>___________________________________________________</p>";
+			//$template->setVariable("ID", $this->object->getId().'CORRECT_SOLUTION');	
+			// TODO hier nur die Musterlösung anzeigen, da wir uns im test beim drücken von check befinden ;)
+		}			
 		else
 			$template->setVariable("ID", $this->object->getId());		
+		
 		$template->setVariable("BACKGROUND", $this->object->getImagePathWeb().$this->object->getImageFilename());	
-		//$tpl->addJavaScript("./Customizing/global/plugins/Modules/TestQuestionPool/Questions/assPaintQuestion/templates/script.js");			
+		
+		foreach ($user_solution as $solution)
+		{				
+				$base64 = "";
+				if ($user_solution[0]["value2"])
+				{
+					$content = file_get_contents ( $user_solution[0]["value2"]);
+					$base64 = 'data:image/png;base64,'.base64_encode( $content );
+				}				
+				$template->setVariable("SOLUTION", ilUtil::prepareFormOutput($base64));		
+		}		
 		
 		$template->setVariable("QUESTIONTEXT", $this->object->prepareTextareaOutput($output, TRUE));
-		/*
-		if ($active_id)
-		{
-			if ($graphicalOutput)
-			{
-				// output of ok/not ok icons for user entered solutions
-				$points = $this->object->calculateReachedPoints($active_id, $pass, TRUE);	
-				$limit = round( $this->object->getMaximumPoints() / 3 );
-				if ($points >= 2 * $limit) // Werte an Aufgabentyp und zu erreichende Punktzahl anpassen!
-				{
-					$template->setCurrentBlock("icon_ok");
-					$template->setVariable("ICON_OK", ilUtil::getImagePath("icon_ok.png"));
-					$template->setVariable("TEXT_OK", "answer_is_right");
-					$template->parseCurrentBlock();
-				}
-				else
-				{
-					$template->setCurrentBlock("icon_not_ok");
-					if ($points >= $limit)
-					{
-						$template->setVariable("ICON_NOT_OK", ilUtil::getImagePath("icon_mostly_ok.png"));
-						$template->setVariable("TEXT_NOT_OK", "answer_is_not_correct_but_positive");
-					}
-					else
-					{
-						$template->setVariable("ICON_NOT_OK", ilUtil::getImagePath("icon_not_ok.png"));
-						$template->setVariable("TEXT_NOT_OK", "answer_is_wrong");
-					}
-					$template->parseCurrentBlock();
-				}
-			}
-		}*/
+		
 		if ($result_output)
 		{
 			$points = $this->object->getMaximumPoints();
@@ -366,12 +350,7 @@ class assPaintQuestionGUI extends assQuestionGUI
 			$template->setCurrentBlock("result_output");
 			$template->setVariable("RESULT_OUTPUT", sprintf($resulttext, $points));
 			$template->parseCurrentBlock();
-		}
-	
-		foreach ($user_solution as $solution)
-		{
-				$template->setVariable("SOLUTION", ilUtil::prepareFormOutput($solution["value2"]));			
-		}
+		}			
 		
 		// generate the question output
 		$solutiontemplate = new ilTemplate("tpl.il_as_tst_solution_output.html",TRUE, TRUE, "Modules/TestQuestionPool");
@@ -475,11 +454,10 @@ class assPaintQuestionGUI extends assQuestionGUI
 				array(
 					"editQuestion", "save", "cancel", "addSuggestedSolution",
 					"cancelExplorer", "linkChilds", "removeSuggestedSolution",
-					"parseQuestion", "saveEdit", "suggestRange"
+					"saveEdit", "suggestRange"
 				),
-				$classname, "", $force_active);
+				$classname, "", $force_active);						
 		}
-		
 		if($_GET["q_id"])
 		{
 			$ilTabs->addTarget("feedback",
@@ -490,6 +468,18 @@ class assPaintQuestionGUI extends assQuestionGUI
 		
 		// add tab for question hint within common class assQuestionGUI
 		$this->addTab_QuestionHints($ilTabs);
+
+		if ($_GET["q_id"])
+		{
+			$ilTabs->addTarget("solution_hint",
+				$this->ctrl->getLinkTargetByClass($classname, "suggestedsolution"),
+				array("suggestedsolution", "saveSuggestedSolution", "outSolutionExplorer", "cancel", 
+				"addSuggestedSolution","cancelExplorer", "linkChilds", "removeSuggestedSolution"
+				),
+				$classname, 
+				""
+			);
+		}
 
 		// Assessment of questions sub menu entry
 		if($_GET["q_id"])

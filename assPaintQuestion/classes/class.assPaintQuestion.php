@@ -13,10 +13,12 @@ include_once "./Modules/Test/classes/inc.AssessmentConstants.php";
 class assPaintQuestion extends assQuestion
 {
 	private $plugin;	
-	
+	// backgroundImage	
 	var $image_filename = "";
+	// stift breite veraenderlich? false - 0, true - 1
 	var $lineValue = 0;
-	var $colorValue = 0;
+	// farben benutzen? false - 0, true - 1
+	var $colorValue = 0;	
 	
 	/**
 	* assPaintQuestion constructor
@@ -63,7 +65,7 @@ class assPaintQuestion extends assQuestion
 	*/
 	function isComplete()
 	{
-		if ( (strlen($this->getTitle())) and ($this->author) and ($this->question) and ($this->getMaximumPoints() > 0) )
+		if ( (strlen($this->getTitle())) and ($this->author) and ($this->question) and ($this->getMaximumPoints() >= 0) )
 		{
 			return true;
 		}
@@ -75,13 +77,14 @@ class assPaintQuestion extends assQuestion
 	
 	function getImageFilename()
 	{
+		// backgroundImage
 		return $this->image_filename;
 	}
 	
 	function deleteImage()
 	{
 		$file = $this->getImagePath() . $this->getImageFilename();
-		@unlink($file); // löscht image aus ordner
+		@unlink($file); // loescht image aus ordner
 		$this->image_filename = "";
 	}
 	
@@ -112,7 +115,7 @@ class assPaintQuestion extends assQuestion
 	}
 	
 	/**
-	 * Sets the image file name
+	 * Set the image file name
 	 *
 	 * @param string $image_file name.
 	 * @access public
@@ -138,14 +141,12 @@ class assPaintQuestion extends assQuestion
 			{
 				$this->ilias->raiseError("The image could not be uploaded!", $this->ilias->error_obj->MESSAGE);
 			}*/
-			move_uploaded_file($image_tempfilename, $imagepath.'/'.$image_filename);
-			global $ilLog; 
-			$ilLog->write("gespeichert: " . $imagepath.$image_filename);
+			move_uploaded_file($image_tempfilename, $imagepath.'/'.$image_filename);			
 		}
 	}
 	
 	/**
-	* Loads a assPaintQuestion object from a database
+	* Load a assPaintQuestion object from a database
 	*
 	* @param object $db A pear DB object
 	* @param integer $question_id A unique key which defines the TemplateQuestion test in the database
@@ -166,7 +167,7 @@ class assPaintQuestion extends assQuestion
 			$this->setObjId($data["obj_fi"]);
 			$this->setTitle($data["title"]);
 			$this->setComment($data["description"]);
-			$this->setSuggestedSolution($data["solution_hint"]);
+			//$this->setSuggestedSolution($data["solution_hint"]);
 			$this->setOriginalId($data["original_id"]);			
 			$this->setAuthor($data["author"]);
 			$this->setOwner($data["owner"]);
@@ -176,13 +177,13 @@ class assPaintQuestion extends assQuestion
 			$this->setQuestion(ilRTE::_replaceMediaObjectImageSrc($data["question_text"], 1));
 			$this->setEstimatedWorkingTime(substr($data["working_time"], 0, 2), substr($data["working_time"], 3, 2), substr($data["working_time"], 6, 2));			
 		}
-		
+		// load backgroundImage
 		$resultImage= $ilDB->queryF("SELECT image_file FROM il_qpl_qst_paint_image WHERE question_fi = %s", array('integer'), array($question_id));
 		if($ilDB->numRows($resultImage) == 1)
 		{
 			$data = $ilDB->fetchAssoc($resultImage);
 			$this->image_filename = $data["image_file"];
-		}
+		}		
 		
 		$resultCheck= $ilDB->queryF("SELECT line, color FROM il_qpl_qst_paint_check WHERE question_fi = %s", array('integer'), array($question_id));
 		if($ilDB->numRows($resultCheck) == 1)
@@ -306,7 +307,7 @@ class assPaintQuestion extends assQuestion
 		$clone->duplicateGenericFeedback($this_id);
 		
 		// duplicate the image
-		$clone->duplicateImage($this_id, $thisObjId);
+		$clone->duplicateImage($this_id, $thisObjId);		
 
 		$clone->onDuplicate($this_id);
 
@@ -345,7 +346,7 @@ class assPaintQuestion extends assQuestion
 		$clone->duplicateGenericFeedback($original_id);
 
 		// copy Image
-		$clone->copyImage($original_id, $source_questionpool);
+		$clone->copyImage($original_id, $source_questionpool);		
 
 		$clone->onCopy($this->getObjId(), $this->getId());
 		return $clone->getId();
@@ -416,15 +417,24 @@ class assPaintQuestion extends assQuestion
 				$pass
 			)
 		);
-		* */
-		$points = 0; // manuelle korrektur notwendig
-		//******
+		*/
+		$points = 0; // manuelle korrektur notwendig		
 		/*
 		$data = $ilDB->fetchAssoc($result);
 		$value1 = $data['value1'];
 		$value2 = $data['value2'];		
 		*/
 		return $points;
+	}
+	
+	
+    /**
+	* Returns the filesystem path for file uploads
+	*/
+	protected function getFileUploadPath($test_id, $active_id)
+	{
+		$question_id = $this->getId();
+		return CLIENT_WEB_DIR . "/assessment/tst_$test_id/$active_id/$question_id/files/";
 	}
 	
 	/**
@@ -458,22 +468,48 @@ class assPaintQuestion extends assQuestion
 			)
 		);
 
-		$entered_values = false;
-
-		$value = $_POST['answerImage'];
+		$entered_values = false;		
+		$value = $_POST['answerImage'];		
+		
+		$result = $ilDB->queryF("SELECT test_fi FROM tst_active WHERE active_id = %s",
+			array('integer'),
+			array($active_id)
+		);
+		$test_id = 0;
+		if ($result->numRows() == 1)
+		{
+			$row = $ilDB->fetchAssoc($result);
+			$test_id = $row["test_fi"];
+		}
+		
 		if (strlen($value) > 0)
 		{
+			$filename = $this->getFileUploadPath($test_id, $active_id).time()."_PaintTask.png";
 			$entered_values = true;
 			$next_id = $ilDB->nextId("tst_solutions");
 			$affectedRows = $ilDB->insert("tst_solutions", array(
 				"solution_id" => array("integer", $next_id),
 				"active_fi" => array("integer", $active_id),
 				"question_fi" => array("integer", $this->getId()),
-				"value1" => array("clob", trim("base64")),
-				"value2" => array("clob", trim($value)),
+				"value1" => array("clob", 'path'),
+				"value2" => array("clob", $filename),
 				"pass" => array("integer", $pass),
 				"tstamp" => array("integer", time())
 			));
+			
+			if (!@file_exists($this->getFileUploadPath($test_id, $active_id))) 
+				ilUtil::makeDirParents($this->getFileUploadPath($test_id, $active_id));
+			
+			// Grab all files from the desired folder
+			$files = glob( $this->getFileUploadPath($test_id, $active_id).'*.png' );
+			if (count($files) == 3)
+			{
+				unlink($files[0]);
+			}						
+			$imageInfo = $value;
+			$image = fopen($imageInfo, 'r');
+			file_put_contents($filename, $image);
+			fclose($image);
 		}
 		
 		if ($entered_values)
@@ -481,7 +517,7 @@ class assPaintQuestion extends assQuestion
 			include_once ("./Modules/Test/classes/class.ilObjAssessmentFolder.php");
 			if (ilObjAssessmentFolder::_enabledAssessmentLogging())
 			{
-				$this->logAction($this->lng->txtlng("assessment", "log_user_entered_values", ilObjAssessmentFolder::_getLogLanguage()), $active_id, $this->getId());
+				$this->logAction($this->lng->txtlng("assessment", "log_user_entered_values", ilObjAssessmentFolder::_getLogLanguage()), $active_id, $this->getId());				
 			}
 		}
 		else
@@ -612,7 +648,5 @@ class assPaintQuestion extends assQuestion
 		$export = new assPaintQuestionExport($this);
 		return $export->toXML($a_include_header, $a_include_binary, $a_shuffle, $test_output, $force_image_references);
 	}
-
 }
-
 ?>

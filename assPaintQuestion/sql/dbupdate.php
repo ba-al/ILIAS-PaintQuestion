@@ -17,12 +17,12 @@
 		);
 	}
 ?>
-<#5>
+<#2>
 <?php
 	// speichere angegebenes hintergrundbild
 	$fields = array(
 			'question_fi'	=> array('type' => 'integer', 'length' => 4, 'notnull' => true ),
-			'image_file' 	=> array('type' => 'text', 'length' => 100, 'fixed' => false, 'notnull' => true )
+			'image_file' 	=> array('type' => 'text', 'length' => 200, 'fixed' => false, 'notnull' => true )
 	);
 	$ilDB->createTable("il_qpl_qst_paint_image", $fields);
 	$ilDB->addPrimaryKey("il_qpl_qst_paint_image", array("question_fi"));	
@@ -36,4 +36,3 @@
 	$ilDB->createTable("il_qpl_qst_paint_check", $fields);
 	$ilDB->addPrimaryKey("il_qpl_qst_paint_check", array("question_fi"));				
 ?>
-

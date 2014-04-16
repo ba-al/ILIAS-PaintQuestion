@@ -1,4 +1,5 @@
 <p>{QUESTIONTEXT}</p>
+<!-- Zeige Auswahlfeld fuer Linienstaerke -->
 <label style="{DISPLAY_LINE} float:left;" for="selWidth">Line width:&nbsp;</label> 
 <select id="selWidth" style="border-radius: 4px; border: 1px solid rgb(170, 170, 170); padding: 2px; {DISPLAY_LINE}">
 	<option value="1">1</option>
@@ -8,6 +9,7 @@
 	<option value="10">10</option>
 	<option value="12">12</option>
 </select>        
+<!-- Zeige Auswahlfeld fuer Linienfarbe -->
 <label style="{DISPLAY_COLOR}" for="selColor">Color:&nbsp;</label>
 <select id="selColor" style="border-radius: 4px; border: 1px solid rgb(170, 170, 170); padding: 2px; {DISPLAY_COLOR}">
 	<option selected="selected" value="black">black</option>
@@ -19,12 +21,18 @@
 </select>        
 <input type="button" name="undo" value="undo" onclick="paintTask.undo(); return false;">
 <input type="button" name="redo" value="redo" onclick="paintTask.redo(); return false;">        
-<input type="button" name="erasePaint" value="paint" onclick="paintTask.erasePaint(this); return false;">
+<input type="button" name="paint" id="paint" value="paint" onclick="paintTask.erasePaint(this); return false;" disabled /><input type="button" name="erase" id="erase" value="erase" onclick="paintTask.erasePaint(this); return false;" />
 <input type="button" name="clear" value="clear all" onclick="paintTask.clear(); return false;">          
 <br><br>
+<!-- Eigentliches Zeichenfenster -->
 <div style="width:800px; height:700px; border:1px solid #000000; overflow:auto;">
 	<!-- resize:both; overflow:auto;  nur im Firefox?-->
+	<!-- BACKGROUND ist das Hintergrundbild zur Aufgabe sofern eines angegeben wurde -->
 	<canvas id="paintCanvas" width="800" height="700" style="vertical-align: bottom; {BACKGROUND} cursor: crosshair;">Kein Canvas unterstüzt!</canvas>	
 </div>  
+<!-- Zeigt Bereich, der geloescht werden soll -->
+<div id="eraseIcon" style="width:10px; height:10px; background: black; pointer-events:none; position: absolute; display: none;"></div>
+<!-- Hier wird das erzeugte Bild als base64-string gespeichert-->
 <textarea id="answerImage" name="answerImage" cols="50" rows="10" style="display:none;"></textarea>
+<!-- Gesamte Funktionalitaet, in RESUME steht letzte Speicherstand der Testperson, siehe script.js -->
 <script>var paintTask = new PaintTask("{RESUME}");</script>
