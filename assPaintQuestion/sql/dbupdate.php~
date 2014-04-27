@@ -36,8 +36,6 @@
 	$ilDB->createTable("il_qpl_qst_paint_check", $fields);
 	$ilDB->addPrimaryKey("il_qpl_qst_paint_check", array("question_fi"));				
 ?>
-<#3>
-<#4>
 <#5>
 <?php
 	$ilDB->dropTable("il_qpl_qst_paint_check");
