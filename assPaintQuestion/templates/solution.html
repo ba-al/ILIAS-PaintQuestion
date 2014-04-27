@@ -1,17 +1,18 @@
 <p>{QUESTIONTEXT}</p>
-<canvas id="paintCanvas{ID}" width="800" height="700" style="vertical-align: bottom; cursor: crosshair; border:1px solid #000000;">Kein Canvas unterstüzt!</canvas>	
+<div style="width:{WIDTH}px; height:{HEIGHT}px; border:1px solid #000000; overflow:auto;">
+<canvas id="paintCanvas{ID}" width="{WIDTH}" height="{HEIGHT}" style="vertical-align: bottom; {BACKGROUND} cursor: crosshair;">Kein Canvas unterstüzt!</canvas>	
 <script>
 	var canvas{ID} = document.getElementById("paintCanvas{ID}");
 	var ctx{ID} = canvas{ID}.getContext('2d');
 	var imageObj{ID} = new Image();
-	imageObj{ID}.onload = function() {
+	/*imageObj{ID}.onload = function() {
 		// zeichne hintergrund
 		ctx{ID}.globalCompositeOperation="destination-over";		
 		ctx{ID}.drawImage(imageObj{ID}, 0,0);		
 		ctx{ID}.globalCompositeOperation="source-over";
 	};
 	imageObj{ID}.src = "{BACKGROUND}";
-	
+	*/
 	var img{ID} = new Image;
 	img{ID}.onload = function(){
 		// zeichne abgabe
@@ -19,3 +20,4 @@
 	};
 	img{ID}.src = "{SOLUTION}";
 </script>
+</div>

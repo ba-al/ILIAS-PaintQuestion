@@ -72,6 +72,26 @@ class assPaintQuestionGUI extends assQuestionGUI
 		}
 		$form->addItem($image);
 		
+		$canvasArea = new ilRadioGroupInputGUI($plugin->txt("canvasArea"), "canvasArea");
+		$canvasArea->addOption(new ilRadioOption($plugin->txt("useImageSize"), 'radioImageSize', ''));
+		$ownSize = new ilRadioOption($plugin->txt("useOwnSize"), 'radioOwnSize', '');
+		$canvasArea->addOption($ownSize);
+		$canvasArea->setValue($this->object->getRadioOption());
+		
+		$sizeWidth = new ilNumberInputGUI($plugin->txt("width"),"sizeWidth");
+		$sizeWidth->setValue($this->object->getCanvasWidth());		
+		$sizeWidth->setSize(10);
+		$sizeWidth->setMinValue(100);
+		
+		$sizeHeight = new ilNumberInputGUI($plugin->txt("height"),"sizeHeight");
+		$sizeHeight->setValue($this->object->getCanvasHeight());
+		$sizeHeight->setSize(10);
+		$sizeHeight->setMinValue(100);
+		
+		$ownSize->addSubItem($sizeWidth);
+		$ownSize->addSubItem($sizeHeight);
+		$form->addItem($canvasArea);
+		
 		// erlaube stiftgroeße?
 		$line = new ilCheckboxInputGUI($plugin->txt("line"), 'lineValue');
 		if ($this->object->getLineValue())
@@ -154,6 +174,9 @@ class assPaintQuestionGUI extends assQuestionGUI
 					$this->object->setImageFilename($_FILES['imagefile']['name'], $_FILES['imagefile']['tmp_name']);					
 				}	
 			}	
+			$this->object->setRadioOption($_POST["canvasArea"]);
+			$this->object->setCanvasWidth($_POST["sizeWidth"]);
+			$this->object->setCanvasHeight($_POST["sizeHeight"]);
 			$this->object->setLineValue($_POST['lineValue']);		
 			$this->object->setColorValue($_POST['colorValue']);
 														
@@ -182,7 +205,38 @@ class assPaintQuestionGUI extends assQuestionGUI
 		if (!$this->object->getColorValue())
 			$template->setVariable("DISPLAY_COLOR", "display:none;");	
 		if ($this->object->getImageFilename())
-			$template->setVariable("BACKGROUND", "background:url(".$this->object->getImagePathWeb().$this->object->getImageFilename().");");	
+			$template->setVariable("BACKGROUND", "background:url(".$this->object->getImagePathWeb().$this->object->getImageFilename()."); background-size:100% 100%;");	
+		$template->setVariable("LINESELECT", $plugin->txt("lineSelect"));				
+		$template->setVariable("COLORSELECT", $plugin->txt("colorSelect"));				
+		$template->setVariable("BLACK", $plugin->txt("black"));				
+		$template->setVariable("BLUE", $plugin->txt("blue"));				
+		$template->setVariable("GRAY", $plugin->txt("gray"));
+		$template->setVariable("GREEN", $plugin->txt("green"));
+		$template->setVariable("RED", $plugin->txt("red"));
+		$template->setVariable("YELLOW", $plugin->txt("yellow"));
+		$template->setVariable("UNDO", $plugin->txt("undo"));
+		$template->setVariable("REDO", $plugin->txt("redo"));
+		$template->setVariable("PAINT", $plugin->txt("paint"));
+		$template->setVariable("ERASE", $plugin->txt("erase"));
+		$template->setVariable("CLEAR_ALL", $plugin->txt("clearAll"));
+		if ($this->object->getRadioOption() == "radioOwnSize")
+		{
+			$template->setVariable("WIDTH", $this->object->getCanvasWidth());
+			$template->setVariable("HEIGHT", $this->object->getCanvasHeight());
+		} else // radioImageSize
+		{
+			if( $this->object->getImageFilename() )
+			{
+				$image = $this->object->getImagePath().$this->object->getImageFilename();
+				$size = getimagesize($image);
+				$template->setVariable("WIDTH", $size[0]);
+				$template->setVariable("HEIGHT", $size[1]);
+			} else
+			{
+				$template->setVariable("WIDTH", 800);
+				$template->setVariable("HEIGHT", 700);
+			}
+		}
 		
 		$tpl->addJavaScript($plugin->getDirectory().'/templates/script.js');
 		
@@ -254,7 +308,38 @@ class assPaintQuestionGUI extends assQuestionGUI
 		if (!$this->object->getColorValue())
 			$template->setVariable("DISPLAY_COLOR", "display:none;");	
 		if ($this->object->getImageFilename())
-			$template->setVariable("BACKGROUND", "background:url(".$this->object->getImagePathWeb().$this->object->getImageFilename().");");				
+			$template->setVariable("BACKGROUND", "background:url(".$this->object->getImagePathWeb().$this->object->getImageFilename()."); background-size:100% 100%;");				
+		$template->setVariable("LINESELECT", $plugin->txt("lineSelect"));				
+		$template->setVariable("COLORSELECT", $plugin->txt("colorSelect"));				
+		$template->setVariable("BLACK", $plugin->txt("black"));				
+		$template->setVariable("BLUE", $plugin->txt("blue"));				
+		$template->setVariable("GRAY", $plugin->txt("gray"));
+		$template->setVariable("GREEN", $plugin->txt("green"));
+		$template->setVariable("RED", $plugin->txt("red"));
+		$template->setVariable("YELLOW", $plugin->txt("yellow"));
+		$template->setVariable("UNDO", $plugin->txt("undo"));
+		$template->setVariable("REDO", $plugin->txt("redo"));
+		$template->setVariable("PAINT", $plugin->txt("paint"));
+		$template->setVariable("ERASE", $plugin->txt("erase"));
+		$template->setVariable("CLEAR_ALL", $plugin->txt("clearAll"));
+		if ($this->object->getRadioOption() == "radioOwnSize")
+		{
+			$template->setVariable("WIDTH", $this->object->getCanvasWidth());
+			$template->setVariable("HEIGHT", $this->object->getCanvasHeight());
+		} else // radioImageSize
+		{
+			if( $this->object->getImageFilename() )
+			{
+				$image = $this->object->getImagePath().$this->object->getImageFilename();
+				$size = getimagesize($image);
+				$template->setVariable("WIDTH", $size[0]);
+				$template->setVariable("HEIGHT", $size[1]);
+			} else
+			{
+				$template->setVariable("WIDTH", 800);
+				$template->setVariable("HEIGHT", 700);
+			}
+		}
 		$tpl->addJavaScript($plugin->getDirectory().'/templates/script.js');
 		//$tpl->addCss("./Services/COPage/css/content.css");	
 								
@@ -328,7 +413,27 @@ class assPaintQuestionGUI extends assQuestionGUI
 		else
 			$template->setVariable("ID", $this->object->getId());		
 		
-		$template->setVariable("BACKGROUND", $this->object->getImagePathWeb().$this->object->getImageFilename());	
+		if ($this->object->getImageFilename())
+			$template->setVariable("BACKGROUND", "background:url(".$this->object->getImagePathWeb().$this->object->getImageFilename()."); background-size:100% 100%;");	
+		
+		if ($this->object->getRadioOption() == "radioOwnSize")
+		{
+			$template->setVariable("WIDTH", $this->object->getCanvasWidth());
+			$template->setVariable("HEIGHT", $this->object->getCanvasHeight());
+		} else // radioImageSize
+		{
+			if( $this->object->getImageFilename() )
+			{
+				$image = $this->object->getImagePath().$this->object->getImageFilename();
+				$size = getimagesize($image);
+				$template->setVariable("WIDTH", $size[0]);
+				$template->setVariable("HEIGHT", $size[1]);
+			} else
+			{
+				$template->setVariable("WIDTH", 800);
+				$template->setVariable("HEIGHT", 700);
+			}
+		}
 		
 		foreach ($user_solution as $solution)
 		{				

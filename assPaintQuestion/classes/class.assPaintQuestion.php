@@ -19,6 +19,12 @@ class assPaintQuestion extends assQuestion
 	var $lineValue = 0;
 	// farben benutzen? false - 0, true - 1
 	var $colorValue = 0;	
+	// canvas size nach hintergrundbild oder eigene angaben?
+	var $radioOption = 'radioImageSize';
+	// canvas breite
+	var $canvasWidth = 100;
+	// canvas hoehe
+	var $canvasHeight = 100;
 	
 	/**
 	* assPaintQuestion constructor
@@ -114,6 +120,36 @@ class assPaintQuestion extends assQuestion
 			$this->colorValue = 0;
 	}
 	
+	function setRadioOption($value)
+	{		
+		$this->radioOption = $value;
+	}
+	
+	function getRadioOption()
+	{
+		return $this->radioOption;
+	}
+	
+	function setCanvasHeight($value)
+	{
+		$this->canvasHeight = $value;
+	}
+	
+	function getCanvasHeight()
+	{
+		return $this->canvasHeight;
+	}
+	
+	function setCanvasWidth($value)
+	{
+		$this->canvasWidth = $value;
+	}
+	
+	function getCanvasWidth()
+	{
+		return $this->canvasWidth;
+	}
+	
 	/**
 	 * Set the image file name
 	 *
@@ -185,13 +221,16 @@ class assPaintQuestion extends assQuestion
 			$this->image_filename = $data["image_file"];
 		}		
 		
-		$resultCheck= $ilDB->queryF("SELECT line, color FROM il_qpl_qst_paint_check WHERE question_fi = %s", array('integer'), array($question_id));
+		$resultCheck= $ilDB->queryF("SELECT line, color, radio_option, width, height FROM il_qpl_qst_paint_check WHERE question_fi = %s", array('integer'), array($question_id));
 		if($ilDB->numRows($resultCheck) == 1)
 		{
 			$data = $ilDB->fetchAssoc($resultCheck);
 			if ($data["line"]==1)
 				$this->lineValue = true;
 			$this->colorValue = $data["color"];
+			$this->setRadioOption($data["radio_option"]);
+			$this->setCanvasWidth($data["width"]);
+			$this->setCanvasHeight($data["height"]);
 		}
 				
 		parent::loadFromDb($question_id);
@@ -227,12 +266,15 @@ class assPaintQuestion extends assQuestion
 			array("integer"),
 			array($this->getId())
 		);
-		$affectedRows = $ilDB->manipulateF("INSERT INTO il_qpl_qst_paint_check (question_fi, line, color) VALUES (%s, %s, %s)", 
-				array("integer", "integer", "integer"),
+		$affectedRows = $ilDB->manipulateF("INSERT INTO il_qpl_qst_paint_check (question_fi, line, color, radio_option, width, height) VALUES (%s, %s, %s, %s, %s, %s)", 
+				array("integer", "integer", "integer", "text", "integer", "integer"),
 				array(
 					$this->getId(),
 					$this->lineValue,
-					$this->colorValue
+					$this->colorValue,
+					$this->radioOption,
+					$this->canvasWidth,
+					$this->canvasHeight
 				)
 		);
 			

@@ -5,3 +5,21 @@ save#:#Save
 image#:#Background Image
 color#:#Allow different Colors
 line#:#Allow different line size
+lineSelect#:#Line width:
+colorSelect#:#Color:
+black#:#black
+blue#:#blue
+gray#:#gray
+green#:#green
+red#:#red
+yellow#:#yellow
+undo#:#undo
+redo#:#redo
+paint#:#paint
+erase#:#erase
+clearAll#:#clear all
+canvasArea#:#Canvas size
+useImageSize#:#use size of background image (800 x 700 if there is no image)
+useOwnSize#:#use own size
+width#:#width
+height#:#height

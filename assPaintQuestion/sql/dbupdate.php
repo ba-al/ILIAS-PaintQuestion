@@ -36,3 +36,19 @@
 	$ilDB->createTable("il_qpl_qst_paint_check", $fields);
 	$ilDB->addPrimaryKey("il_qpl_qst_paint_check", array("question_fi"));				
 ?>
+<#5>
+<?php
+	$ilDB->dropTable("il_qpl_qst_paint_check");
+	// erlaube farbauswahl und linienstärke? zeichengoesse nach image oder selbst?
+	$fields = array(
+			'question_fi'	=> array('type' => 'integer', 'length' => 4, 'notnull' => true ),
+			'line' 			=> array('type' => 'integer', 'length' => 1),
+			'color' 		=> array('type' => 'integer', 'length' => 1),
+			'radio_option' 	=> array('type' => 'text', 'length' => 16, 'notnull' => true, 'fixed' => false, 'default' => 'radioImageSize'),		
+			'width' 		=> array('type' => 'integer', 'length' => 8, 'default' => 100 ),
+			'height' 		=> array('type' => 'integer', 'length' => 8, 'default' => 100 )
+	);
+	$ilDB->createTable("il_qpl_qst_paint_check", $fields);
+	$ilDB->addPrimaryKey("il_qpl_qst_paint_check", array("question_fi"));	
+	
+?>

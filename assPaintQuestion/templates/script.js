@@ -63,7 +63,7 @@ function PaintTask(resumeImage){
     this.erasePaint = function(button){
         // der radiergummie ;)
         // button ist das object, welches diese funktion aufruft    
-        if (button.value == "paint"){
+        if (button.id == "paint"){
             //button.value = "erase";
             button.disabled = true;
             document.getElementById('erase').disabled = false;
