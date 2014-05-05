@@ -58,6 +58,7 @@ function PaintTask(resumeImage){
         // loesche den gesamten inhalt, hintergrundbild wird wieder vollstaendig angezeigt
         ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);        
         pushDrawAction();
+        textarea.value = '';
     }
 
     this.erasePaint = function(button){
@@ -197,5 +198,5 @@ function PaintTask(resumeImage){
 		setTimeout(resume,500);
 	}
         
-    pushDrawAction(); 
+   // pushDrawAction(); 
 }
