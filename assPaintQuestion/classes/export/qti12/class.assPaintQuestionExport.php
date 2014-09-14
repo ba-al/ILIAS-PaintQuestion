@@ -71,37 +71,52 @@ class assPaintQuestionExport extends assQuestionExport
 		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getColorValue());
 		$a_xml_writer->xmlEndTag("qtimetadatafield");	
 		
-		// backgroundImage			
-		$imagetype = "image/jpeg";
-		if (preg_match("/.*\.(png|gif)$/", $this->object->getImageFilename(), $matches))
-		{
-			$imagetype = "image/" . $matches[1];
-		}
-		$a_xml_writer->xmlStartTag("qtimetadatafield");	
-		$a_xml_writer->xmlElement("fieldlabel", NULL, "imagelabel");
-		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getImageFilename());
-		$a_xml_writer->xmlEndTag("qtimetadatafield");
-		$a_xml_writer->xmlStartTag("qtimetadatafield");	
-		$a_xml_writer->xmlElement("fieldlabel", NULL, "imagetype");
-		$a_xml_writer->xmlElement("fieldentry", NULL, $imagetype);
-		$a_xml_writer->xmlEndTag("qtimetadatafield");
-				
-		$imagepath = $this->object->getImagePath() . $this->object->getImageFilename();
-		$fh = fopen($imagepath, "rb");
-		if ($fh == false)
-		{
-			global $ilErr;
-			$ilErr->raiseError($this->object->lng->txt("error_open_image_file"), $ilErr->MESSAGE);
-			return;
-		}
-		$imagefile = fread($fh, filesize($imagepath));
-		fclose($fh);
-		$base64 = base64_encode($imagefile);
-		$a_xml_writer->xmlStartTag("qtimetadatafield");	
-		$a_xml_writer->xmlElement("fieldlabel", NULL, "backgroundimage");
-		$a_xml_writer->xmlElement("fieldentry", NULL, $base64);
-		$a_xml_writer->xmlEndTag("qtimetadatafield");				
+		// backgroundImage	
+		if ($this->object->getImageFilename() != "")
+		{		
+			$imagetype = "image/jpeg";
+			if (preg_match("/.*\.(png|gif)$/", $this->object->getImageFilename(), $matches))
+			{
+				$imagetype = "image/" . $matches[1];
+			}
+			$a_xml_writer->xmlStartTag("qtimetadatafield");	
+			$a_xml_writer->xmlElement("fieldlabel", NULL, "imagelabel");
+			$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getImageFilename());
+			$a_xml_writer->xmlEndTag("qtimetadatafield");
+			$a_xml_writer->xmlStartTag("qtimetadatafield");	
+			$a_xml_writer->xmlElement("fieldlabel", NULL, "imagetype");
+			$a_xml_writer->xmlElement("fieldentry", NULL, $imagetype);
+			$a_xml_writer->xmlEndTag("qtimetadatafield");
+					
+			$imagepath = $this->object->getImagePath() . $this->object->getImageFilename();
+			$fh = fopen($imagepath, "rb");
+			if ($fh == false)
+			{
+				global $ilErr;
+				$ilErr->raiseError($this->object->lng->txt("error_open_image_file"), $ilErr->MESSAGE);
+				return;
+			}
+			$imagefile = fread($fh, filesize($imagepath));
+			fclose($fh);
+			$base64 = base64_encode($imagefile);
+			$a_xml_writer->xmlStartTag("qtimetadatafield");	
+			$a_xml_writer->xmlElement("fieldlabel", NULL, "backgroundimage");
+			$a_xml_writer->xmlElement("fieldentry", NULL, $base64);
+			$a_xml_writer->xmlEndTag("qtimetadatafield");	
+		}			
 		// ende backgroundImage
+		$a_xml_writer->xmlStartTag("qtimetadatafield");	
+		$a_xml_writer->xmlElement("fieldlabel", NULL, "radiooption");
+		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getRadioOption());
+		$a_xml_writer->xmlEndTag("qtimetadatafield");
+		$a_xml_writer->xmlStartTag("qtimetadatafield");	
+		$a_xml_writer->xmlElement("fieldlabel", NULL, "canvasheight");
+		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getCanvasHeight());
+		$a_xml_writer->xmlEndTag("qtimetadatafield");
+		$a_xml_writer->xmlStartTag("qtimetadatafield");	
+		$a_xml_writer->xmlElement("fieldlabel", NULL, "canvaswidth");
+		$a_xml_writer->xmlElement("fieldentry", NULL, $this->object->getCanvasWidth());
+		$a_xml_writer->xmlEndTag("qtimetadatafield");
 		
 		$a_xml_writer->xmlEndTag("qtimetadata");
 		$a_xml_writer->xmlEndTag("itemmetadata");

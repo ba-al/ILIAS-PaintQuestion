@@ -139,33 +139,39 @@ class assPaintQuestionImport extends assQuestionImport
 			$this->object->saveFeedbackGeneric($correctness, ilRTE::_replaceMediaObjectImageSrc($material, 1));
 		}		
 		// backgroundImage		
-		$questionimage = array(
-			"imagetype" => $item->getMetadataEntry("imagetype"),
-			"label" => $item->getMetadataEntry("imagelabel"),
-			"content" => $item->getMetadataEntry("backgroundimage")
-		);
-		$this->object->setImageFilename($questionimage["label"]);
-		$image =& base64_decode($questionimage["content"]);
-		$imagepath = $this->object->getImagePath();
-		if (!file_exists($imagepath))
+		if ($item->getMetadataEntry("backgroundimage") )
 		{
-			include_once "./Services/Utilities/classes/class.ilUtil.php";
-			ilUtil::makeDirParents($imagepath);
+			$questionimage = array(
+				"imagetype" => $item->getMetadataEntry("imagetype"),
+				"label" => $item->getMetadataEntry("imagelabel"),
+				"content" => $item->getMetadataEntry("backgroundimage")
+			);
+			$this->object->setImageFilename($questionimage["label"]);
+			$image =& base64_decode($questionimage["content"]);
+			$imagepath = $this->object->getImagePath();
+			if (!file_exists($imagepath))
+			{
+				include_once "./Services/Utilities/classes/class.ilUtil.php";
+				ilUtil::makeDirParents($imagepath);
+			}
+			$imagepath .=  $questionimage["label"];
+			$fh = fopen($imagepath, "wb");
+			if ($fh == false)
+			{
+	//									global $ilErr;
+	//									$ilErr->raiseError($this->object->lng->txt("error_save_image_file") . ": $php_errormsg", $ilErr->MESSAGE);
+	//									return;
+			}
+			else
+			{
+				$imagefile = fwrite($fh, $image);
+				fclose($fh);
+			}
 		}
-		$imagepath .=  $questionimage["label"];
-		$fh = fopen($imagepath, "wb");
-		if ($fh == false)
-		{
-//									global $ilErr;
-//									$ilErr->raiseError($this->object->lng->txt("error_save_image_file") . ": $php_errormsg", $ilErr->MESSAGE);
-//									return;
-		}
-		else
-		{
-			$imagefile = fwrite($fh, $image);
-			fclose($fh);
-		}
-			
+		$this->object->setRadioOption($item->getMetadataEntry("radiooption"));
+		$this->object->setCanvasHeight($item->getMetadataEntry("canvasheight"));
+		$this->object->setCanvasWidth($item->getMetadataEntry("canvaswidth"));
+
 		$this->object->saveToDb();
 
 		if ($tst_id > 0)

@@ -226,7 +226,7 @@ class assPaintQuestion extends assQuestion
 		{
 			$data = $ilDB->fetchAssoc($resultCheck);
 			if ($data["line"]==1)
-				$this->lineValue = true;
+				$this->lineValue = 1;
 			$this->colorValue = $data["color"];
 			$this->setRadioOption($data["radio_option"]);
 			$this->setCanvasWidth($data["width"]);
